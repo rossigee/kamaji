@@ -1,0 +1,130 @@
+apiVersion: kamaji.clastix.io/v1alpha1
+kind: TenantControlPlane
+metadata:
+  name: golder-secops-tenant-example
+  namespace: kamaji-system
+  labels:
+    app.kubernetes.io/name: kamaji
+    app.kubernetes.io/component: tenant-control-plane
+    kamaji.clastix.io/cluster: golder-secops
+    kamaji.clastix.io/environment: secops
+spec:
+  # Kubernetes configuration
+  kubernetes:
+    version: "v1.30.0"
+    kubelet:
+      cgroupfs: systemd
+      preferredAddressTypes:
+        - InternalIP
+        - ExternalIP
+        - Hostname
+    admissionControllers:
+      - CertificateApproval
+      - CertificateSigning
+      - CertificateSubjectRestriction
+      - DefaultIngressClass
+      - DefaultStorageClass
+      - DefaultTolerationSeconds
+      - LimitRanger
+      - MutatingAdmissionWebhook
+      - NamespaceLifecycle
+      - PersistentVolumeClaimResize
+      - Priority
+      - ResourceQuota
+      - RuntimeClass
+      - ServiceAccount
+      - StorageObjectInUseProtection
+      - TaintNodesByCondition
+      - ValidatingAdmissionWebhook
+
+  # Network configuration
+  networkProfile:
+    address: "k8s-api.secops.golder.lan"
+    port: 6443
+    certSANs:
+      - "k8s-api.secops.golder.lan"
+      - "kubernetes"
+      - "kubernetes.default.svc"
+      - "kubernetes.default.svc.cluster.local"
+    serviceCidr: "10.96.0.0/16"
+    podCidr: "10.244.0.0/16"
+    dnsServiceIPs:
+      - "10.96.0.10"
+
+  # Control plane configuration
+  controlPlane:
+    deployment:
+      replicas: 2
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+    service:
+      serviceType: "ClusterIP"
+
+  # DataStore configuration (customize as needed)
+  dataStore: "default"
+
+  # ECDSA Pregenerated Certificates
+  preGeneratedCertificates:
+    ca:
+      secretName: golder-secops-ca-certificate
+      secretNamespace: kamaji-system
+      certificateKey: tls.crt
+      privateKeyKey: tls.key
+    
+    apiServer:
+      secretName: golder-secops-apiserver-certificate
+      secretNamespace: kamaji-system
+      certificateKey: tls.crt
+      privateKeyKey: tls.key
+    
+    kubeletClient:
+      secretName: golder-secops-kubelet-client-certificate
+      secretNamespace: kamaji-system
+      certificateKey: tls.crt
+      privateKeyKey: tls.key
+    
+    frontProxyCA:
+      secretName: golder-secops-front-proxy-ca-certificate
+      secretNamespace: kamaji-system
+      certificateKey: tls.crt
+      privateKeyKey: tls.key
+    
+    frontProxyClient:
+      secretName: golder-secops-front-proxy-client-certificate
+      secretNamespace: kamaji-system
+      certificateKey: tls.crt
+      privateKeyKey: tls.key
+    
+    serviceAccount:
+      secretName: golder-secops-service-account-keys
+      secretNamespace: kamaji-system
+      publicKeyKey: sa.pub
+      privateKeyKey: sa.key
+
+---
+# Kustomization for easy deployment
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: golder-secops-pregenerated-certs
+resources:
+  - ../secrets/ca-certificate-secret.yaml
+  - ../secrets/apiserver-certificate-secret.yaml
+  - ../secrets/kubelet-client-certificate-secret.yaml
+  - ../secrets/front-proxy-ca-certificate-secret.yaml
+  - ../secrets/front-proxy-client-certificate-secret.yaml
+  - ../secrets/service-account-keys-secret.yaml
+  - example-tenant-controlplane.yaml
+commonLabels:
+  kamaji.clastix.io/cluster: golder-secops
+  kamaji.clastix.io/environment: secops
