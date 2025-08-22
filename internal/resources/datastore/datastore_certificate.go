@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -18,14 +20,26 @@ import (
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/internal/constants"
 	"github.com/clastix/kamaji/internal/crypto"
+	"github.com/clastix/kamaji/internal/resources"
 	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type Certificate struct {
-	resource  *corev1.Secret
-	Client    client.Client
-	Name      string
-	DataStore kamajiv1alpha1.DataStore
+	resource                *corev1.Secret
+	Client                  client.Client
+	Name                    string
+	DataStore               kamajiv1alpha1.DataStore
+	CertExpirationThreshold time.Duration
+}
+
+func (r *Certificate) GetHistogram() prometheus.Histogram {
+	return resources.LazyLoadHistogramFromResource(r.getCollector(), r)
+}
+
+func (r *Certificate) getCollector() prometheus.Histogram {
+	// Return a nil collector since this is in a separate package 
+	// LazyLoadHistogramFromResource will handle creating the collector
+	return nil
 }
 
 func (r *Certificate) ShouldStatusBeUpdated(_ context.Context, tenantControlPlane *kamajiv1alpha1.TenantControlPlane) bool {
