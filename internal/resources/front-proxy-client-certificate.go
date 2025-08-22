@@ -202,6 +202,9 @@ func (r *FrontProxyClientCertificate) mutate(ctx context.Context, tenantControlP
 			r.resource.Data = map[string][]byte{
 				kubeadmconstants.FrontProxyClientCertName: certificateKeyPair.Certificate,
 				kubeadmconstants.FrontProxyClientKeyName:  certificateKeyPair.PrivateKey,
+				// Add TLS keys for compatibility with external certificate management
+				corev1.TLSCertKey:       certificateKeyPair.Certificate,
+				corev1.TLSPrivateKeyKey: certificateKeyPair.PrivateKey,
 			}
 		}
 
@@ -253,10 +256,13 @@ func (r *FrontProxyClientCertificate) usePreGeneratedFrontProxyClientCertificate
 			secretKey, certKey, privKeyKey, corev1.TLSCertKey, corev1.TLSPrivateKeyKey)
 	}
 
-	// Set the resource data using kubeadm constants
+	// Set the resource data using kubeadm constants and TLS keys for compatibility
 	r.resource.Data = map[string][]byte{
 		kubeadmconstants.FrontProxyClientCertName: certData,
 		kubeadmconstants.FrontProxyClientKeyName:  privKeyData,
+		// Add TLS keys for compatibility with external certificate management
+		corev1.TLSCertKey:       certData,
+		corev1.TLSPrivateKeyKey: privKeyData,
 	}
 
 	return nil

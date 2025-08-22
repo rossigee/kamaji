@@ -175,6 +175,9 @@ func (r *APIServerKubeletClientCertificate) mutate(ctx context.Context, tenantCo
 			r.resource.Data = map[string][]byte{
 				kubeadmconstants.APIServerKubeletClientCertName: certificateKeyPair.Certificate,
 				kubeadmconstants.APIServerKubeletClientKeyName:  certificateKeyPair.PrivateKey,
+				// Add TLS keys for compatibility with external certificate management
+				corev1.TLSCertKey:       certificateKeyPair.Certificate,
+				corev1.TLSPrivateKeyKey: certificateKeyPair.PrivateKey,
 			}
 		}
 
@@ -203,24 +206,37 @@ func (r *APIServerKubeletClientCertificate) usePreGeneratedKubeletClientCertific
 		return fmt.Errorf("failed to get pregenerated Kubelet client certificate secret %s/%s: %w", secretNamespace, certRef.SecretName, err)
 	}
 
-	// Get certificate data using the specified key or default
+	// Determine certificate and private key keys
 	certKey := certRef.CertificateKey
 	if certKey == "" {
 		certKey = corev1.TLSCertKey
 	}
-	certData, exists := pregenSecret.Data[certKey]
-	if !exists {
-		return fmt.Errorf("key %q not found in secret %s/%s", certKey, secretNamespace, certRef.SecretName)
-	}
 
-	// Get private key data using the specified key or default  
 	privKeyKey := certRef.PrivateKeyKey
 	if privKeyKey == "" {
 		privKeyKey = corev1.TLSPrivateKeyKey
 	}
-	privKeyData, exists := pregenSecret.Data[privKeyKey]
+
+	// Get certificate data with fallback logic - try kubeadm format first, then TLS format
+	certData, exists := pregenSecret.Data[kubeadmconstants.APIServerKubeletClientCertName]
 	if !exists {
-		return fmt.Errorf("key %q not found in secret %s/%s", privKeyKey, secretNamespace, certRef.SecretName)
+		// Fallback to configured certificate key (usually tls.crt)
+		if fallbackCertData, fallbackExists := pregenSecret.Data[certKey]; fallbackExists {
+			certData = fallbackCertData
+		} else {
+			return fmt.Errorf("certificate key %s not found in secret %s/%s, and fallback key %s also not found", kubeadmconstants.APIServerKubeletClientCertName, secretNamespace, certRef.SecretName, certKey)
+		}
+	}
+
+	// Get private key data with fallback logic - try kubeadm format first, then TLS format  
+	privKeyData, exists := pregenSecret.Data[kubeadmconstants.APIServerKubeletClientKeyName]
+	if !exists {
+		// Fallback to configured private key (usually tls.key)
+		if fallbackPrivData, fallbackExists := pregenSecret.Data[privKeyKey]; fallbackExists {
+			privKeyData = fallbackPrivData
+		} else {
+			return fmt.Errorf("private key %s not found in secret %s/%s, and fallback key %s also not found", kubeadmconstants.APIServerKubeletClientKeyName, secretNamespace, certRef.SecretName, privKeyKey)
+		}
 	}
 
 	// Validate certificate and key format
@@ -232,10 +248,13 @@ func (r *APIServerKubeletClientCertificate) usePreGeneratedKubeletClientCertific
 		return fmt.Errorf("certificate and private key pair validation failed")
 	}
 
-	// Set the resource data with the pregenerated certificate
+	// Set the resource data with both kubeadm and TLS keys for compatibility
 	r.resource.Data = map[string][]byte{
 		kubeadmconstants.APIServerKubeletClientCertName: certData,
 		kubeadmconstants.APIServerKubeletClientKeyName:  privKeyData,
+		// Add TLS keys for compatibility with external certificate management
+		corev1.TLSCertKey:       certData,
+		corev1.TLSPrivateKeyKey: privKeyData,
 	}
 
 	return nil

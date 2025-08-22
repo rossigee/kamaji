@@ -136,6 +136,9 @@ func (r *FrontProxyCACertificate) mutate(ctx context.Context, tenantControlPlane
 			r.resource.Data = map[string][]byte{
 				kubeadmconstants.FrontProxyCACertName: ca.Certificate,
 				kubeadmconstants.FrontProxyCAKeyName:  ca.PrivateKey,
+				// Add TLS keys for compatibility with external certificate management
+				corev1.TLSCertKey:       ca.Certificate,
+				corev1.TLSPrivateKeyKey: ca.PrivateKey,
 			}
 		}
 
@@ -204,10 +207,13 @@ func (r *FrontProxyCACertificate) usePreGeneratedFrontProxyCACertificate(ctx con
 		}
 	}
 
-	// Set the resource data using kubeadm constants
+	// Set the resource data using kubeadm constants and TLS keys for compatibility
 	r.resource.Data = map[string][]byte{
 		kubeadmconstants.FrontProxyCACertName: certData,
 		kubeadmconstants.FrontProxyCAKeyName:  privKeyData,
+		// Add TLS keys for compatibility with external certificate management
+		corev1.TLSCertKey:       certData,
+		corev1.TLSPrivateKeyKey: privKeyData,
 	}
 
 	return nil

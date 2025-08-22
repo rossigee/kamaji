@@ -41,7 +41,8 @@ func (r *APIServerCertificate) GetHistogram() prometheus.Histogram {
 }
 
 func (r *APIServerCertificate) ShouldStatusBeUpdated(_ context.Context, tenantControlPlane *kamajiv1alpha1.TenantControlPlane) bool {
-	return tenantControlPlane.Status.Certificates.APIServer.Checksum != utilities.GetObjectChecksum(r.resource)
+	return tenantControlPlane.Status.Certificates.APIServer.SecretName != r.resource.GetName() ||
+		tenantControlPlane.Status.Certificates.APIServer.Checksum != utilities.GetObjectChecksum(r.resource)
 }
 
 func (r *APIServerCertificate) ShouldCleanup(_ *kamajiv1alpha1.TenantControlPlane) bool {
@@ -193,6 +194,9 @@ func (r *APIServerCertificate) mutate(ctx context.Context, tenantControlPlane *k
 			r.resource.Data = map[string][]byte{
 				kubeadmconstants.APIServerCertName: certificateKeyPair.Certificate,
 				kubeadmconstants.APIServerKeyName:  certificateKeyPair.PrivateKey,
+				// Add TLS keys for compatibility with external certificate management
+				corev1.TLSCertKey:       certificateKeyPair.Certificate,
+				corev1.TLSPrivateKeyKey: certificateKeyPair.PrivateKey,
 			}
 		}
 
@@ -233,21 +237,35 @@ func (r *APIServerCertificate) usePreGeneratedAPIServerCertificate(ctx context.C
 		privKeyKey = corev1.TLSPrivateKeyKey
 	}
 
-	// Get certificate and private key data
-	certData, exists := secret.Data[certKey]
+	// Get certificate data with fallback logic - try kubeadm format first, then TLS format
+	certData, exists := secret.Data[kubeadmconstants.APIServerCertName]
 	if !exists {
-		return fmt.Errorf("certificate key %s not found in secret %s", certKey, secretKey)
+		// Fallback to configured certificate key (usually tls.crt)
+		if fallbackCertData, fallbackExists := secret.Data[certKey]; fallbackExists {
+			certData = fallbackCertData
+		} else {
+			return fmt.Errorf("certificate key %s not found in secret %s, and fallback key %s also not found", kubeadmconstants.APIServerCertName, secretKey, certKey)
+		}
 	}
 
-	privKeyData, exists := secret.Data[privKeyKey]
+	// Get private key data with fallback logic - try kubeadm format first, then TLS format  
+	privKeyData, exists := secret.Data[kubeadmconstants.APIServerKeyName]
 	if !exists {
-		return fmt.Errorf("private key %s not found in secret %s", privKeyKey, secretKey)
+		// Fallback to configured private key (usually tls.key)
+		if fallbackPrivData, fallbackExists := secret.Data[privKeyKey]; fallbackExists {
+			privKeyData = fallbackPrivData
+		} else {
+			return fmt.Errorf("private key %s not found in secret %s, and fallback key %s also not found", kubeadmconstants.APIServerKeyName, secretKey, privKeyKey)
+		}
 	}
 
-	// Set the resource data
+	// Set the resource data with both kubeadm and TLS keys for compatibility
 	r.resource.Data = map[string][]byte{
 		kubeadmconstants.APIServerCertName: certData,
 		kubeadmconstants.APIServerKeyName:  privKeyData,
+		// Add TLS keys for compatibility with external certificate management
+		corev1.TLSCertKey:       certData,
+		corev1.TLSPrivateKeyKey: privKeyData,
 	}
 
 	return nil

@@ -18,6 +18,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
+	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
@@ -37,8 +38,11 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 	BeforeEach(func() {
 		ctx = context.Background()
 
+		// Register the custom scheme for TenantControlPlane CRD
+		err := kamajiv1alpha1.AddToScheme(scheme.Scheme)
+		Expect(err).ToNot(HaveOccurred())
+
 		// Generate test certificate and key
-		var err error
 		testCert, testKey, err = generateTestFrontProxyCACertificate()
 		Expect(err).ToNot(HaveOccurred())
 
@@ -79,7 +83,7 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 					},
 				}
 
-				client := fake.NewClientBuilder().WithObjects(secret).Build()
+				client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(secret).Build()
 				frontProxyCACert = resources.FrontProxyCACertificate{
 					Client:       client,
 					TmpDirectory: "/tmp",
@@ -121,7 +125,7 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 					},
 				}
 
-				client := fake.NewClientBuilder().WithObjects(secret).Build()
+				client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(secret).Build()
 				frontProxyCACert = resources.FrontProxyCACertificate{
 					Client:       client,
 					TmpDirectory: "/tmp",
@@ -163,7 +167,7 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 					},
 				}
 
-				client := fake.NewClientBuilder().WithObjects(secret).Build()
+				client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(secret).Build()
 				frontProxyCACert = resources.FrontProxyCACertificate{
 					Client:       client,
 					TmpDirectory: "/tmp",
@@ -202,7 +206,7 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 					},
 				}
 
-				client := fake.NewClientBuilder().WithObjects(secret).Build()
+				client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(secret).Build()
 				frontProxyCACert = resources.FrontProxyCACertificate{
 					Client:       client,
 					TmpDirectory: "/tmp",
@@ -241,7 +245,7 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 					},
 				}
 
-				client := fake.NewClientBuilder().WithObjects(secret).Build()
+				client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(secret).Build()
 				frontProxyCACert = resources.FrontProxyCACertificate{
 					Client:       client,
 					TmpDirectory: "/tmp",
@@ -279,7 +283,7 @@ var _ = Describe("FrontProxyCACertificate Resource", func() {
 					},
 				}
 
-				client := fake.NewClientBuilder().WithObjects(secret).Build()
+				client := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(secret).Build()
 				frontProxyCACert = resources.FrontProxyCACertificate{
 					Client:       client,
 					TmpDirectory: "/tmp",

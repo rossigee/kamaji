@@ -226,7 +226,7 @@ var _ = Describe("APIServerCertificate Resource", func() {
 	Context("resource properties", func() {
 		It("should have correct name", func() {
 			name := apiServerCert.GetName()
-			Expect(name).To(Equal("apiserver"))
+			Expect(name).To(Equal("api-server-certificate"))
 		})
 
 		It("should have client configured", func() {
