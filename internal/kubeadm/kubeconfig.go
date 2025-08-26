@@ -21,6 +21,7 @@ func buildCertificateDirectoryWithCA(ca CertificatePrivateKeyPair, directory str
 	}
 
 	certPath := path.Join(directory, kubeadmconstants.CACertName)
+	// Write the entire certificate chain, not just the first certificate
 	if err := os.WriteFile(certPath, ca.Certificate, os.FileMode(0o600)); err != nil {
 		return err
 	}
