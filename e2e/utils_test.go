@@ -8,22 +8,27 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	gomegaTypes "github.com/onsi/gomega/types"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
 	pointer "k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/utilities"
 )
 
 func GetKindIPAddress() string {
@@ -31,6 +36,41 @@ func GetKindIPAddress() string {
 	Expect(k8sClient.Get(context.Background(), types.NamespacedName{Name: "kubernetes", Namespace: "default"}, &ep)).ToNot(HaveOccurred())
 
 	return ep.Endpoints[0].Addresses[0]
+}
+
+func CreateKindTCPWithAddons(tcpNamespace string, tcpName string, addons kamajiv1alpha1.AddonsSpec) *kamajiv1alpha1.TenantControlPlane {
+	return &kamajiv1alpha1.TenantControlPlane{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      tcpName,
+			Namespace: tcpNamespace,
+		},
+		Spec: kamajiv1alpha1.TenantControlPlaneSpec{
+			ControlPlane: kamajiv1alpha1.ControlPlane{
+				Deployment: kamajiv1alpha1.DeploymentSpec{
+					Replicas: pointer.To(int32(1)),
+				},
+				Service: kamajiv1alpha1.ServiceSpec{
+					ServiceType: "NodePort",
+				},
+			},
+			NetworkProfile: kamajiv1alpha1.NetworkProfileSpec{
+				Address:                  GetKindIPAddress(),
+				AllowAddressAsExternalIP: true,
+				Port:                     30001,
+			},
+			Kubernetes: kamajiv1alpha1.KubernetesSpec{
+				Version: "v1.28.0",
+				Kubelet: kamajiv1alpha1.KubeletSpec{
+					CGroupFS: "cgroupfs",
+				},
+				AdmissionControllers: kamajiv1alpha1.AdmissionControllers{
+					"LimitRanger",
+					"ResourceQuota",
+				},
+			},
+			Addons: addons,
+		},
+	}
 }
 
 func PrintTenantControlPlaneInfo() {
@@ -43,8 +83,8 @@ func PrintTenantControlPlaneInfo() {
 
 	tcp := tcpList.Items[0]
 
-	kubectlExec := func(ctx context.Context, args ...string) {
-		cmd := exec.CommandContext(ctx, "kubectl")
+	kubectlExec := func(args ...string) {
+		cmd := exec.Command("kubectl")
 
 		var out bytes.Buffer
 		cmd.Stdout = &out
@@ -65,23 +105,20 @@ func PrintTenantControlPlaneInfo() {
 	if CurrentSpecReport().Failed() {
 		_, _ = fmt.Fprintln(GinkgoWriter, "DEBUG: Tenant Control Plane definition")
 		kubectlExec(
-			context.Background(),
-			"--namespace="+tcp.GetNamespace(),
+			fmt.Sprintf("--namespace=%s", tcp.GetNamespace()),
 			"get",
 			"tcp",
 			tcp.GetName(),
 		)
 		_, _ = fmt.Fprintln(GinkgoWriter, "DEBUG: Tenant Control Plane resources")
 		kubectlExec(
-			context.Background(),
-			"--namespace="+tcp.GetNamespace(),
+			fmt.Sprintf("--namespace=%s", tcp.GetNamespace()),
 			"get",
 			"svc,deployment,pods,ep,configmap,secrets",
 		)
 		_, _ = fmt.Fprintln(GinkgoWriter, "DEBUG: Tenant Control Plane pods")
 		kubectlExec(
-			context.Background(),
-			"--namespace="+tcp.GetNamespace(),
+			fmt.Sprintf("--namespace=%s", tcp.GetNamespace()),
 			"describe",
 			"pods",
 		)
@@ -146,7 +183,10 @@ func StatusMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, status kamajiv1al
 func AllPodsLabelMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, label string, value string) {
 	GinkgoHelper()
 	Eventually(func() bool {
-		tcpPods, err := getControlPlanePods(tcp)
+		tcpPods := &corev1.PodList{}
+		err := k8sClient.List(context.Background(), tcpPods, client.MatchingLabels{
+			"kamaji.clastix.io/name": tcp.GetName(),
+		})
 		if err != nil {
 			return false
 		}
@@ -163,7 +203,10 @@ func AllPodsLabelMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, label strin
 func AllPodsAnnotationMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, annotation string, value string) {
 	GinkgoHelper()
 	Eventually(func() bool {
-		tcpPods, err := getControlPlanePods(tcp)
+		tcpPods := &corev1.PodList{}
+		err := k8sClient.List(context.Background(), tcpPods, client.MatchingLabels{
+			"kamaji.clastix.io/name": tcp.GetName(),
+		})
 		if err != nil {
 			return false
 		}
@@ -181,7 +224,10 @@ func PodsServiceAccountMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, sa *c
 	GinkgoHelper()
 	saName := sa.GetName()
 	Eventually(func() bool {
-		tcpPods, err := getControlPlanePods(tcp)
+		tcpPods := &corev1.PodList{}
+		err := k8sClient.List(context.Background(), tcpPods, client.MatchingLabels{
+			"kamaji.clastix.io/name": tcp.GetName(),
+		})
 		if err != nil {
 			return false
 		}
@@ -206,7 +252,7 @@ func ScaleTenantControlPlane(tcp *kamajiv1alpha1.TenantControlPlane, replicas in
 	Expect(err).To(Succeed())
 }
 
-// CreateGatewayWithListeners creates a Gateway with control plane and konnectivity-server listeners.
+// CreateGatewayWithListeners creates a Gateway with both kube-apiserver and konnectivity-server listeners.
 func CreateGatewayWithListeners(gatewayName, namespace, gatewayClassName, hostname string) {
 	GinkgoHelper()
 	gateway := &gatewayv1.Gateway{
@@ -218,7 +264,7 @@ func CreateGatewayWithListeners(gatewayName, namespace, gatewayClassName, hostna
 			GatewayClassName: gatewayv1.ObjectName(gatewayClassName),
 			Listeners: []gatewayv1.Listener{
 				{
-					Name:     "cp-listener",
+					Name:     "kube-apiserver",
 					Port:     6443,
 					Protocol: gatewayv1.TLSProtocolType,
 					Hostname: pointer.To(gatewayv1.Hostname(hostname)),
@@ -263,115 +309,108 @@ func CreateGatewayWithListeners(gatewayName, namespace, gatewayClassName, hostna
 	Expect(k8sClient.Create(context.Background(), gateway)).NotTo(HaveOccurred())
 }
 
-// containerSecurityContextMustEqualTo verifies if the container with the given containerName in the control plane pods has the given security context.
-func containerSecurityContextMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, containerName string, containerSecurityContext *corev1.SecurityContext) {
+func GetTenantClientSet(tcp *kamajiv1alpha1.TenantControlPlane) (*kubernetes.Clientset, *os.File) {
 	GinkgoHelper()
-	tcpPods, err := getControlPlanePods(tcp)
-	Expect(err).ToNot(HaveOccurred())
-	Expect(tcpPods.Items).ToNot(BeEmpty())
 
-	for _, pod := range tcpPods.Items {
-		// containerFound tracks if the container with the given containerName is actually present
-		containerFound := false
-		for _, container := range pod.Spec.Containers {
-			if container.Name == containerName {
-				containerFound = true
-				Expect(container.SecurityContext).To(Equal(containerSecurityContext), fmt.Sprintf("securityContext for container %s does not match expected value", containerName))
-			} else {
-				continue
-			}
+	var clientset *kubernetes.Clientset
+	ctx := context.Background()
+
+	kubeconfigFile, err := os.CreateTemp("", fmt.Sprintf("tcp-clientset-%s", string(tcp.ObjectMeta.UID)))
+	Expect(err).ToNot(HaveOccurred())
+
+	Eventually(func() (err error) {
+		if err := k8sClient.Get(ctx, types.NamespacedName{Namespace: tcp.GetNamespace(), Name: tcp.GetName()}, tcp); err != nil {
+			_, _ = fmt.Fprintln(GinkgoWriter, "DEBUG: cannot retrieve TCP:", err.Error())
+
+			return err
 		}
-		Expect(containerFound).To(BeTrue(), fmt.Sprintf("pod does not container a container with name '%s'", containerName))
-	}
+
+		secret := &corev1.Secret{}
+
+		if err = k8sClient.Get(ctx, types.NamespacedName{Namespace: tcp.GetNamespace(), Name: tcp.Status.KubeConfig.Admin.SecretName}, secret); err != nil {
+			_, _ = fmt.Fprintln(GinkgoWriter, "DEBUG: cannot retrieve kubeconfig secret name:", err.Error())
+
+			return err
+		}
+
+		_, err = kubeconfigFile.Write(secret.Data["admin.conf"])
+
+		return err
+	}, time.Minute, 5*time.Second).ShouldNot(HaveOccurred())
+
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile.Name())
+	Expect(err).ToNot(HaveOccurred())
+
+	clientset, err = kubernetes.NewForConfig(config)
+	Expect(err).ToNot(HaveOccurred())
+
+	return clientset, kubeconfigFile
 }
 
-// podSecurityContextMustEqualTo verifies if the control plane pods have the given security context.
-func podSecurityContextMustEqualTo(tcp *kamajiv1alpha1.TenantControlPlane, podSecurityContext *corev1.PodSecurityContext) {
+func GetDaemonSetContainers(clientset *kubernetes.Clientset, namespace string, name string) []corev1.Container {
+	var daemonSet *appsv1.DaemonSet
+	var err error
+
+	Eventually(func() error {
+		daemonSet, err = clientset.AppsV1().DaemonSets(namespace).Get(context.Background(), name, metav1.GetOptions{})
+
+		return err
+	}).WithTimeout(1 * time.Minute).WithPolling(10 * time.Second).To(Succeed())
+
+	return daemonSet.Spec.Template.Spec.Containers
+}
+
+func GetDeploymentContainers(clientset *kubernetes.Clientset, namespace string, name string) []corev1.Container {
+	var deployment *appsv1.Deployment
+	var err error
+
+	Eventually(func() error {
+		deployment, err = clientset.AppsV1().Deployments(namespace).Get(context.Background(), name, metav1.GetOptions{})
+
+		return err
+	}).WithTimeout(1 * time.Minute).WithPolling(10 * time.Second).To(Succeed())
+
+	return deployment.Spec.Template.Spec.Containers
+}
+
+func CheckTemplateContainerEnvVars(clientset *kubernetes.Clientset, resourceKind string, resourceNamespace string, resourceName string, containerName string, expectedVars []corev1.EnvVar, only bool) {
 	GinkgoHelper()
-	tcpPods, err := getControlPlanePods(tcp)
-	Expect(err).ToNot(HaveOccurred())
-	Expect(tcpPods.Items).ToNot(BeEmpty())
 
-	for _, pod := range tcpPods.Items {
-		Expect(pod.Spec.SecurityContext).To(Equal(podSecurityContext), "podSecurityContext does not match expected value")
-	}
-}
+	var envVarMatcher gomegaTypes.GomegaMatcher
 
-// waitUntilControlPlaneReconciliationIsFinished waits until the controller has finished reconciling the control plane deployment.
-// This is useful as the controller updates the control plane deployment several times, resulting in multiple replicasets running in parallel.
-func waitUntilControlPlaneReconciliationIsFinished(tcp *kamajiv1alpha1.TenantControlPlane) {
-	Eventually(func() bool {
-		tcpPods, err := getControlPlanePods(tcp)
-		if err != nil {
-			return false
+	if only {
+		if len(expectedVars) > 0 {
+			envVarMatcher = HaveExactElements(expectedVars)
+		} else {
+			envVarMatcher = Or(BeNil(), BeEmpty())
 		}
-
-		// if there are no pods, reconciliation is clearly not finished
-		podCount := len(tcpPods.Items)
-		if podCount == 0 {
-			return false
-		}
-
-		// all pods must have the same pod-template-hash and be ready
-		firstPodTemplateHash := tcpPods.Items[0].Labels["pod-template-hash"]
-		for _, pod := range tcpPods.Items {
-			if pod.Labels["pod-template-hash"] != firstPodTemplateHash {
-				return false
-			}
-			if !isPodReady(&pod) {
-				return false
-			}
-		}
-
-		// things are looking good at this point
-		// wait an arbitrary amount of time to see if something is still happening
-		time.Sleep(5 * time.Second)
-
-		// repeat the process
-		tcpPods, err = getControlPlanePods(tcp)
-		if err != nil {
-			return false
-		}
-
-		// the number of pods must stay stable
-		if len(tcpPods.Items) != podCount {
-			return false
-		}
-
-		// verify that the pod template hash is stable and all pods are still ready
-		for _, pod := range tcpPods.Items {
-			if pod.Labels["pod-template-hash"] != firstPodTemplateHash {
-				return false
-			}
-			if !isPodReady(&pod) {
-				return false
-			}
-		}
-
-		return true
-	}, 5*time.Minute, time.Second).Should(BeTrue())
-}
-
-// getControlPlanePods returns all pods that belong to the given tenant control plane.
-func getControlPlanePods(tcp *kamajiv1alpha1.TenantControlPlane) (*corev1.PodList, error) {
-	tcpPods := &corev1.PodList{}
-	err := k8sClient.List(context.Background(), tcpPods, client.MatchingLabels{
-		"kamaji.clastix.io/name": tcp.GetName(),
-	})
-	if err != nil {
-		return &corev1.PodList{}, err
+	} else {
+		envVarMatcher = ContainElements(expectedVars)
 	}
 
-	return tcpPods, nil
+	Eventually(func() []corev1.EnvVar {
+		var containers []corev1.Container
+
+		By("getting containers for ressource", func() {
+			switch resourceKind {
+			case "DaemonSet":
+				containers = GetDaemonSetContainers(clientset, resourceNamespace, resourceName)
+			case "Deployment":
+				containers = GetDeploymentContainers(clientset, resourceNamespace, resourceName)
+			default:
+				containers = []corev1.Container{}
+			}
+		})
+
+		var container corev1.Container
+
+		By("checking for named container", func() {
+			_, at := utilities.HasNamedContainer(containers, containerName)
+			container = containers[at]
+		})
+
+		return container.Env
+	}).WithTimeout(1 * time.Minute).WithPolling(10 * time.Second).To(envVarMatcher)
 }
 
-// isPodReady returns true if and only if the given Pod has status "Ready" = true.
-func isPodReady(pod *corev1.Pod) bool {
-	for _, cond := range pod.Status.Conditions {
-		if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
-			return true
-		}
-	}
-
-	return false
-}
+func CheckTCPContainerEnvVars(k8sClient client.Client, tcp kamajiv1alpha1.TenantControlPlane, containerName string, expectedVars []corev1.EnvVar, only bool) {
