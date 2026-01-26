@@ -123,7 +123,7 @@ func (in *AddonSpec) DeepCopyInto(out *AddonSpec) {
 	out.ImageOverrideTrait = in.ImageOverrideTrait
 	if in.ExtraEnvs != nil {
 		in, out := &in.ExtraEnvs, &out.ExtraEnvs
-		*out = make([]corev1.EnvVar, len(*in))
+		*out = make([]v1.EnvVar, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -1149,7 +1149,7 @@ func (in *KonnectivityAgentSpec) DeepCopyInto(out *KonnectivityAgentSpec) {
 	}
 	if in.ExtraEnvs != nil {
 		in, out := &in.ExtraEnvs, &out.ExtraEnvs
-		*out = make([]corev1.EnvVar, len(*in))
+		*out = make([]v1.EnvVar, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -1227,7 +1227,7 @@ func (in *KonnectivityServerSpec) DeepCopyInto(out *KonnectivityServerSpec) {
 	}
 	if in.ExtraEnvs != nil {
 		in, out := &in.ExtraEnvs, &out.ExtraEnvs
-		*out = make([]corev1.EnvVar, len(*in))
+		*out = make([]v1.EnvVar, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
