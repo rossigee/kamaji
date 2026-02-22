@@ -5,6 +5,7 @@ package v1alpha1
 
 import corev1 "k8s.io/api/core/v1"
 
+// AdmissionController represents a Kubernetes admission controller.
 // +kubebuilder:validation:Enum=AlwaysAdmit;AlwaysDeny;AlwaysPullImages;CertificateApproval;CertificateSigning;CertificateSubjectRestriction;DefaultIngressClass;DefaultStorageClass;DefaultTolerationSeconds;DenyEscalatingExec;DenyExecOnPrivileged;DenyServiceExternalIPs;EventRateLimit;ExtendedResourceToleration;ImagePolicyWebhook;LimitPodHardAntiAffinityTopology;LimitRanger;MutatingAdmissionWebhook;NamespaceAutoProvision;NamespaceExists;NamespaceLifecycle;NodeRestriction;OwnerReferencesPermissionEnforcement;PersistentVolumeClaimResize;PersistentVolumeLabel;PodNodeSelector;PodSecurity;PodSecurityPolicy;PodTolerationRestriction;Priority;ResourceQuota;RuntimeClass;SecurityContextDeny;ServiceAccount;StorageObjectInUseProtection;TaintNodesByCondition;ValidatingAdmissionWebhook
 type AdmissionController string
 
@@ -20,6 +21,7 @@ func (a AdmissionControllers) ToSlice() []string {
 	return out
 }
 
+// CGroupDriver represents the cgroup driver type for kubelet.
 // +kubebuilder:validation:Enum=systemd;cgroupfs
 type CGroupDriver string
 
@@ -34,5 +36,6 @@ const (
 	KubeconfigSecretKeyAnnotation = "kamaji.clastix.io/kubeconfig-secret-key"
 )
 
+// ServiceType represents the type of Kubernetes service.
 // +kubebuilder:validation:Enum=ClusterIP;NodePort;LoadBalancer
 type ServiceType corev1.ServiceType

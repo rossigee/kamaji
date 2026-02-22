@@ -86,7 +86,8 @@ type KubeconfigGeneratorStatus struct {
 type KubeconfigGeneratorList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KubeconfigGenerator `json:"items"`
+
+	Items []KubeconfigGenerator `json:"items"`
 }
 
 func init() {
