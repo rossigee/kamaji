@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: kamaji-system/kamaji-serving-cert
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: tenantcontrolplanes.kamaji.clastix.io
 spec:
   group: kamaji.clastix.io
@@ -7076,6 +7076,7 @@ spec:
                         List of enabled Admission Controllers for the Tenant cluster.
                         Full reference available here: https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers
                       items:
+                        description: AdmissionController represents a Kubernetes admission controller.
                         enum:
                           - AlwaysAdmit
                           - AlwaysDeny
@@ -7170,6 +7171,7 @@ spec:
                             Ordered list of the preferred NodeAddressTypes to use for kubelet connections.
                             Default to InternalIP, ExternalIP, Hostname.
                           items:
+                            description: KubeletPreferredAddressType represents the preferred address types for kubelet connections.
                             enum:
                               - Hostname
                               - InternalIP
