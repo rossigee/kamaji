@@ -56,6 +56,7 @@ type NetworkProfileSpec struct {
 	DNSServiceIPs []string `json:"dnsServiceIPs,omitempty"`
 }
 
+// KubeletPreferredAddressType represents the preferred address types for kubelet connections.
 // +kubebuilder:validation:Enum=Hostname;InternalIP;ExternalIP;InternalDNS;ExternalDNS
 type KubeletPreferredAddressType string
 
@@ -445,7 +446,8 @@ type TenantControlPlane struct {
 type TenantControlPlaneList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []TenantControlPlane `json:"items"`
+
+	Items []TenantControlPlane `json:"items"`
 }
 
 func init() {

@@ -84,6 +84,7 @@ type secretReferKeyPath string
 
 type SecretReference struct {
 	corev1.SecretReference `json:",inline"`
+
 	// Name of the key for the given Secret reference where the content is stored.
 	// This value is mandatory.
 	KeyPath secretReferKeyPath `json:"keyPath"`
@@ -133,7 +134,8 @@ type DataStore struct {
 type DataStoreList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []DataStore `json:"items"`
+
+	Items []DataStore `json:"items"`
 }
 
 func init() {

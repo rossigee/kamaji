@@ -195,6 +195,7 @@ type KubernetesStatus struct {
 	Gateway    *KubernetesGatewayStatus   `json:"gateway,omitempty"`
 }
 
+// KubernetesVersionStatus represents the status of a Kubernetes version.
 // +kubebuilder:validation:Enum=Unknown;Provisioning;CertificateAuthorityRotating;Upgrading;Migrating;Ready;NotReady;Sleeping;WriteLimited
 type KubernetesVersionStatus string
 
@@ -221,6 +222,7 @@ type KubernetesVersion struct {
 // KubernetesDeploymentStatus defines the status for the Tenant Control Plane Deployment in the management cluster.
 type KubernetesDeploymentStatus struct {
 	appsv1.DeploymentStatus `json:",inline"`
+
 	// Selector is the label selector used to group the Tenant Control Plane Pods used by the scale subresource.
 	Selector string `json:"selector"`
 	// The name of the Deployment for the given cluster.
@@ -234,6 +236,7 @@ type KubernetesDeploymentStatus struct {
 // KubernetesServiceStatus defines the status for the Tenant Control Plane Service in the management cluster.
 type KubernetesServiceStatus struct {
 	corev1.ServiceStatus `json:",inline"`
+
 	// The name of the Service for the given cluster.
 	Name string `json:"name"`
 	// The namespace which the Service for the given cluster is deployed.
@@ -245,6 +248,7 @@ type KubernetesServiceStatus struct {
 // KubernetesIngressStatus defines the status for the Tenant Control Plane Ingress in the management cluster.
 type KubernetesIngressStatus struct {
 	networkingv1.IngressStatus `json:",inline"`
+
 	// The name of the Ingress for the given cluster.
 	Name string `json:"name"`
 	// The namespace which the Ingress for the given cluster is deployed.
@@ -258,6 +262,7 @@ type GatewayAccessPoint struct {
 	URLs  []string               `json:"urls,omitempty"`
 }
 
+// RouteStatus represents the status of a gateway route.
 // +k8s:deepcopy-gen=false
 type RouteStatus = gatewayv1.RouteStatus
 
