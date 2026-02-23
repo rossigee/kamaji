@@ -8851,8 +8851,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: kamaji-webhook-service
-          namespace: kamaji-system
+          name: '{{ .Values.kamajiService }}'
+          namespace: '{{ .Values.kamajiNamespace }}'
           path: /convert
       conversionReviewVersions:
         - v1

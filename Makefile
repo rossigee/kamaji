@@ -139,8 +139,6 @@ crds: controller-gen yq
 	$(YQ) '.spec' ./charts/kamaji/crds/kamaji.clastix.io_datastores.yaml > ./charts/kamaji-crds/hack/kamaji.clastix.io_datastores_spec.yaml
 	$(YQ) '.spec' ./charts/kamaji/crds/kamaji.clastix.io_tenantcontrolplanes.yaml > ./charts/kamaji-crds/hack/kamaji.clastix.io_tenantcontrolplanes_spec.yaml
 	$(YQ) '.spec' ./charts/kamaji/crds/kamaji.clastix.io_kubeconfiggenerators.yaml > ./charts/kamaji-crds/hack/kamaji.clastix.io_kubeconfiggenerators_spec.yaml
-	$(YQ) -i '.conversion.webhook.clientConfig.service.name = "{{ .Values.kamajiService }}"' ./charts/kamaji-crds/hack/kamaji.clastix.io_tenantcontrolplanes_spec.yaml
-	$(YQ) -i '.conversion.webhook.clientConfig.service.namespace = "{{ .Values.kamajiNamespace }}"' ./charts/kamaji-crds/hack/kamaji.clastix.io_tenantcontrolplanes_spec.yaml
 
 manifests: rbac webhook crds ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 
