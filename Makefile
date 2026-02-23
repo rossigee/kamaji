@@ -105,6 +105,10 @@ golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
 	test -s $(LOCALBIN)/golangci-lint || GOBIN=$(LOCALBIN) CGO_ENABLED=0 go install -ldflags="-s -w" github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
 
+.PHONY: lint
+lint: golangci-lint ## Run golangci-lint to check code quality and style.
+	$(GOLANGCI_LINT) run
+
 .PHONY: apidocs-gen
 apidocs-gen: $(APIDOCS_GEN)  ## Download crdoc locally if necessary.
 $(APIDOCS_GEN): $(LOCALBIN)
