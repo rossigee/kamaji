@@ -150,10 +150,6 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 golint: golangci-lint ## Linting the code according to the styling guide.
 	$(GOLANGCI_LINT) run -c .golangci.yml
 
-.PHONY: lint
-lint: golangci-lint ## Run golangci-lint to check code quality and style.
-	$(GOLANGCI_LINT) run -c .golangci.yml
-
 ## Run unit tests (all tests except E2E).
 .PHONY: test
 test: envtest ginkgo
