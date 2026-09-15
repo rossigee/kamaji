@@ -9,13 +9,12 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"gomodules.xyz/jsonpatch/v2"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/internal/upgrade"
 	"github.com/clastix/kamaji/internal/webhook/utils"
+	"gomodules.xyz/jsonpatch/v2"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 type TenantControlPlaneVersion struct{}

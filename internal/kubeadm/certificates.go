@@ -10,10 +10,9 @@ import (
 	"os"
 	"path/filepath"
 
+	cryptoKamaji "github.com/clastix/kamaji/internal/crypto"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/certs"
-
-	cryptoKamaji "github.com/clastix/kamaji/internal/crypto"
 )
 
 func GenerateCACertificatePrivateKeyPair(baseName string, config *Configuration) (*CertificatePrivateKeyPair, error) {

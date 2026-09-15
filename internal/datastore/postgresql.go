@@ -9,10 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-pg/pg/v10"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/internal/datastore/errors"
+	"github.com/go-pg/pg/v10"
 )
 
 const (

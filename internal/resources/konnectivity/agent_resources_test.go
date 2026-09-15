@@ -6,11 +6,10 @@ package konnectivity
 import (
 	"testing"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 // agentTCP returns the minimum TenantControlPlane the agent mutate function

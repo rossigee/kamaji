@@ -4,9 +4,8 @@
 package routes
 
 import (
-	"k8s.io/apimachinery/pkg/runtime"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 //+kubebuilder:webhook:path=/validate-kamaji-clastix-io-v1alpha1-tenantcontrolplane,mutating=false,failurePolicy=fail,sideEffects=None,groups=kamaji.clastix.io,resources=tenantcontrolplanes,verbs=create;update,versions=v1alpha1,name=vtenantcontrolplane.kb.io,admissionReviewVersions=v1

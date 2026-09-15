@@ -8,9 +8,8 @@ import (
 	"encoding/hex"
 	"sort"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/clastix/kamaji/internal/constants"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // GetObjectChecksum returns the annotation checksum in case this is set,

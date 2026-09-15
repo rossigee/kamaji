@@ -8,10 +8,9 @@ import (
 
 	"github.com/clastix/kamaji-telemetry/api"
 	kamajitelemetry "github.com/clastix/kamaji-telemetry/pkg/client"
-	"k8s.io/apimachinery/pkg/runtime"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/internal/webhook/utils"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type TenantControlPlaneTelemetry struct {

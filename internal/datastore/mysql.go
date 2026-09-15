@@ -13,10 +13,9 @@ import (
 	"time"
 
 	"github.com/JamesStewy/go-mysqldump"
-	"github.com/go-sql-driver/mysql"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/internal/datastore/errors"
+	"github.com/go-sql-driver/mysql"
 )
 
 const (

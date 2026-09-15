@@ -4,9 +4,8 @@
 package utils
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/event"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 )
 
 // CoalesceTriggerChannelBufferSize is the buffer size of the channels fed by CoalesceTriggerChannel,

@@ -7,6 +7,9 @@ import (
 	"context"
 	"fmt"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/builders/controlplane"
+	"github.com/clastix/kamaji/internal/webhook/utils"
 	"github.com/google/go-cmp/cmp"
 	"gomodules.xyz/jsonpatch/v2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -15,10 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/builders/controlplane"
-	"github.com/clastix/kamaji/internal/webhook/utils"
 )
 
 type TenantControlPlaneDeployment struct {

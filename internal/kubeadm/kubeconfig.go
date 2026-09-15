@@ -10,11 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
-	"k8s.io/kubernetes/cmd/kubeadm/app/phases/kubeconfig"
-
 	"github.com/clastix/kamaji/internal/crypto"
 	"github.com/clastix/kamaji/internal/utilities"
+	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/kubeconfig"
 )
 
 func buildCertificateDirectoryWithCA(ca CertificatePrivateKeyPair, directory string) error {

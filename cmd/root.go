@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/spf13/cobra"
 	_ "go.uber.org/automaxprocs" // Automatically set `GOMAXPROCS` to match Linux container CPU quota.
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,8 +12,6 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	appsv1 "k8s.io/kubernetes/pkg/apis/apps/v1"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 func NewCmd(scheme *runtime.Scheme) *cobra.Command {

@@ -8,13 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-logr/logr"
-	"github.com/google/uuid"
-	k8stypes "k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/discovery"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/controllers/finalizers"
 	builder "github.com/clastix/kamaji/internal/builders/controlplane"
@@ -23,6 +16,12 @@ import (
 	ds "github.com/clastix/kamaji/internal/resources/datastore"
 	"github.com/clastix/kamaji/internal/resources/konnectivity"
 	"github.com/clastix/kamaji/internal/utilities"
+	"github.com/go-logr/logr"
+	"github.com/google/uuid"
+	k8stypes "k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type GroupResourceBuilderConfiguration struct {

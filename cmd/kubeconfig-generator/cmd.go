@@ -11,6 +11,10 @@ import (
 	goRuntime "runtime"
 	"time"
 
+	cmdutils "github.com/clastix/kamaji/cmd/utils"
+	"github.com/clastix/kamaji/controllers"
+	"github.com/clastix/kamaji/internal"
+	"github.com/clastix/kamaji/internal/metrics"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,11 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	cmdutils "github.com/clastix/kamaji/cmd/utils"
-	"github.com/clastix/kamaji/controllers"
-	"github.com/clastix/kamaji/internal"
-	"github.com/clastix/kamaji/internal/metrics"
 )
 
 func NewCmd(scheme *runtime.Scheme) *cobra.Command {

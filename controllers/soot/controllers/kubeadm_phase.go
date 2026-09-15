@@ -7,6 +7,9 @@ import (
 	"context"
 	"errors"
 
+	sooterrors "github.com/clastix/kamaji/controllers/soot/controllers/errors"
+	"github.com/clastix/kamaji/controllers/utils"
+	"github.com/clastix/kamaji/internal/resources"
 	"github.com/go-logr/logr"
 	"k8s.io/utils/ptr"
 	controllerruntime "sigs.k8s.io/controller-runtime"
@@ -19,10 +22,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	sooterrors "github.com/clastix/kamaji/controllers/soot/controllers/errors"
-	"github.com/clastix/kamaji/controllers/utils"
-	"github.com/clastix/kamaji/internal/resources"
 )
 
 type KubeadmPhase struct {

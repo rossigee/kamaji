@@ -13,6 +13,17 @@ import (
 	"time"
 
 	telemetryclient "github.com/clastix/kamaji-telemetry/pkg/client"
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	cmdutils "github.com/clastix/kamaji/cmd/utils"
+	"github.com/clastix/kamaji/controllers"
+	"github.com/clastix/kamaji/controllers/soot"
+	"github.com/clastix/kamaji/internal"
+	"github.com/clastix/kamaji/internal/builders/controlplane"
+	"github.com/clastix/kamaji/internal/metrics"
+	"github.com/clastix/kamaji/internal/utilities"
+	"github.com/clastix/kamaji/internal/webhook"
+	"github.com/clastix/kamaji/internal/webhook/handlers"
+	"github.com/clastix/kamaji/internal/webhook/routes"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,18 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	cmdutils "github.com/clastix/kamaji/cmd/utils"
-	"github.com/clastix/kamaji/controllers"
-	"github.com/clastix/kamaji/controllers/soot"
-	"github.com/clastix/kamaji/internal"
-	"github.com/clastix/kamaji/internal/builders/controlplane"
-	"github.com/clastix/kamaji/internal/metrics"
-	"github.com/clastix/kamaji/internal/utilities"
-	"github.com/clastix/kamaji/internal/webhook"
-	"github.com/clastix/kamaji/internal/webhook/handlers"
-	"github.com/clastix/kamaji/internal/webhook/routes"
 )
 
 //nolint:maintidx

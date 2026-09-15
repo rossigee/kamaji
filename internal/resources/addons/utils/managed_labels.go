@@ -4,10 +4,9 @@
 package utils
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/clastix/kamaji/internal/constants"
 	"github.com/clastix/kamaji/internal/utilities"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func SetKamajiManagedLabels(obj client.Object) {

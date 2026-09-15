@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/clastix/kamaji/internal/utilities"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"k8s.io/kubernetes/cmd/kubeadm/app/componentconfigs"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
 	"k8s.io/kubernetes/cmd/kubeadm/app/util/config"
-
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 const (

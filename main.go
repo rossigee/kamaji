@@ -6,12 +6,11 @@ package main
 import (
 	"os"
 
-	"k8s.io/apimachinery/pkg/runtime"
-
 	"github.com/clastix/kamaji/cmd"
 	kubeconfig_generator "github.com/clastix/kamaji/cmd/kubeconfig-generator"
 	"github.com/clastix/kamaji/cmd/manager"
 	"github.com/clastix/kamaji/cmd/migrate"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func main() {

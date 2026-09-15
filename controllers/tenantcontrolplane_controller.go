@@ -12,6 +12,15 @@ import (
 	"strings"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/controllers/finalizers"
+	"github.com/clastix/kamaji/controllers/utils"
+	controlplanebuilder "github.com/clastix/kamaji/internal/builders/controlplane"
+	"github.com/clastix/kamaji/internal/datastore"
+	kamajierrors "github.com/clastix/kamaji/internal/errors"
+	"github.com/clastix/kamaji/internal/metrics"
+	"github.com/clastix/kamaji/internal/resources"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/juju/mutex/v2"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -36,16 +45,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/controllers/finalizers"
-	"github.com/clastix/kamaji/controllers/utils"
-	controlplanebuilder "github.com/clastix/kamaji/internal/builders/controlplane"
-	"github.com/clastix/kamaji/internal/datastore"
-	kamajierrors "github.com/clastix/kamaji/internal/errors"
-	"github.com/clastix/kamaji/internal/metrics"
-	"github.com/clastix/kamaji/internal/resources"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 // TenantControlPlaneReconciler reconciles a TenantControlPlane object.
