@@ -7,11 +7,9 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"sort"
-	"strings"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/clastix/kamaji/internal/constants"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // GetObjectChecksum returns the annotation checksum in case this is set,
@@ -77,13 +75,13 @@ func calculateMapStringString(data map[string]string) string {
 
 	sort.Strings(keys)
 
-	var checksum strings.Builder
+	var checksum string
 
 	for _, key := range keys {
-		checksum.WriteString(data[key])
+		checksum += data[key]
 	}
 
-	return md5Checksum([]byte(checksum.String()))
+	return md5Checksum([]byte(checksum))
 }
 
 func calculateMapStringByte(data map[string][]byte) string {
@@ -94,13 +92,13 @@ func calculateMapStringByte(data map[string][]byte) string {
 
 	sort.Strings(keys)
 
-	var checksum strings.Builder
+	var checksum string
 
 	for _, key := range keys {
-		checksum.Write(data[key])
+		checksum += string(data[key])
 	}
 
-	return md5Checksum([]byte(checksum.String()))
+	return md5Checksum([]byte(checksum))
 }
 
 func md5Checksum(value []byte) string {

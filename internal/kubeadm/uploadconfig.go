@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/blang/semver"
+	"github.com/clastix/kamaji/internal/utilities"
 	jsonpatchv5 "github.com/evanphx/json-patch/v5"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -18,9 +19,6 @@ import (
 	"k8s.io/kubernetes/cmd/kubeadm/app/util/apiclient"
 	"k8s.io/kubernetes/pkg/apis/rbac"
 	kubeletv1beta1 "k8s.io/kubernetes/pkg/kubelet/apis/config/v1beta1"
-	"sigs.k8s.io/yaml"
-
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 const (
@@ -96,20 +94,14 @@ func getKubeletConfigmapContent(kubeletConfiguration KubeletConfiguration, patch
 			return nil, fmt.Errorf("unable to encode KubeletConfiguration to JSON for JSON patching: %w", patchErr)
 		}
 
-		options := jsonpatchv5.NewApplyOptions()
-		options.AllowMissingPathOnRemove = true
-
-		if kubeletConfig, patchErr = patch.ApplyWithOptions(kubeletConfig, options); patchErr != nil {
+		if kubeletConfig, patchErr = patch.Apply(kubeletConfig); patchErr != nil {
 			return nil, fmt.Errorf("unable to apply JSON patching to KubeletConfiguration: %w", patchErr)
 		}
 
-		// Decoding only validates the patched document: encoding the struct again
-		// would restore non-pointer struct fields the patch removed.
-		if patchErr = utilities.DecodeFromJSON(string(kubeletConfig), &kubelettypes.KubeletConfiguration{}); patchErr != nil {
+		kc = kubelettypes.KubeletConfiguration{}
+		if patchErr = utilities.DecodeFromJSON(string(kubeletConfig), &kc); patchErr != nil {
 			return nil, fmt.Errorf("unable to decode JSON to KubeletConfiguration: %w", patchErr)
 		}
-
-		return yaml.JSONToYAML(kubeletConfig)
 	}
 
 	return utilities.EncodeToYaml(&kc)

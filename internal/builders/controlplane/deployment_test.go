@@ -7,13 +7,12 @@ import (
 	"slices"
 	"testing"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/utilities"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	pointer "k8s.io/utils/ptr"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 func TestControlplaneDeployment(t *testing.T) {

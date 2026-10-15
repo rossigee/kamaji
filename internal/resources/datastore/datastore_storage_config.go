@@ -6,8 +6,11 @@ package datastore
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/controllers/finalizers"
+	"github.com/clastix/kamaji/internal/resources"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
@@ -19,11 +22,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/controllers/finalizers"
-	"github.com/clastix/kamaji/internal/resources"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type Config struct {
@@ -167,11 +165,6 @@ func (r *Config) mutate(ctx context.Context, tenantControlPlane *kamajiv1alpha1.
 				username = []byte(tenantControlPlane.Spec.DataStoreUsername)
 			default:
 				username = []byte(tenantControlPlane.GetDefaultDatastoreUsername())
-			}
-			// MySQL account names are limited to 32 characters, a hyphenated UID is 36:
-			// the default username (also populated in the spec by the defaulting webhook) must drop the hyphens.
-			if r.DataStore.Spec.Driver == kamajiv1alpha1.KineMySQLDriver && len(tenantControlPlane.UID) > 0 && string(username) == tenantControlPlane.GetDefaultDatastoreUsername() {
-				username = []byte(strings.ReplaceAll(string(username), "-", ""))
 			}
 		}
 

@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	ds "github.com/clastix/kamaji/internal/resources/datastore"
+	"github.com/clastix/kamaji/internal/utilities"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -21,10 +24,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	pointer "k8s.io/utils/ptr"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	ds "github.com/clastix/kamaji/internal/resources/datastore"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 // migrationFixtures is kept small on purpose: objects written here land in the Kamaji
@@ -207,7 +206,7 @@ func featureTestMigration(driver string) {
 			writeNamespace.Name = fmt.Sprintf("write-%s-%s", rand.String(5), driver)
 
 			return tcpClient.Create(context.Background(), &writeNamespace)
-		}, 5*time.Minute, time.Second).ShouldNot(HaveOccurred())
+		}).ShouldNot(HaveOccurred())
 	})
 }
 

@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/event"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 func TestKubeconfigGeneratorReconcilerReconcileAppliesReconcileTimeout(t *testing.T) {

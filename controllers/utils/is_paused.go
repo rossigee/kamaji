@@ -4,9 +4,8 @@
 package utils
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/clastix/kamaji/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func IsPaused(obj client.Object) bool {

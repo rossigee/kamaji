@@ -11,9 +11,8 @@ import (
 	"net"
 	"strconv"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ConnectionEndpoint struct {
@@ -49,8 +48,7 @@ func NewConnectionConfig(ctx context.Context, client client.Client, ds kamajiv1a
 		}
 
 		tlsConfig = &tls.Config{
-			RootCAs:    rootCAs,
-			MinVersion: tls.VersionTLS12,
+			RootCAs: rootCAs,
 		}
 	}
 

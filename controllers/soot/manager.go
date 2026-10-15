@@ -9,6 +9,13 @@ import (
 	"fmt"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/controllers/finalizers"
+	"github.com/clastix/kamaji/controllers/soot/controllers"
+	kamajierrors "github.com/clastix/kamaji/controllers/soot/controllers/errors"
+	"github.com/clastix/kamaji/controllers/utils"
+	"github.com/clastix/kamaji/internal/resources"
+	"github.com/clastix/kamaji/internal/utilities"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
@@ -26,14 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/controllers/finalizers"
-	"github.com/clastix/kamaji/controllers/soot/controllers"
-	kamajierrors "github.com/clastix/kamaji/controllers/soot/controllers/errors"
-	"github.com/clastix/kamaji/controllers/utils"
-	"github.com/clastix/kamaji/internal/resources"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type sootItem struct {

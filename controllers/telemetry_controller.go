@@ -10,13 +10,12 @@ import (
 
 	"github.com/clastix/kamaji-telemetry/api"
 	telemetry "github.com/clastix/kamaji-telemetry/pkg/client"
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 type TelemetryController struct {

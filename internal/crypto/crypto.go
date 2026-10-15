@@ -13,6 +13,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	mathrand "math/rand"
 	"net"
 	"time"
 
@@ -269,23 +270,20 @@ func checkPublicKeys(a crypto.PublicKey, b crypto.Signer) bool {
 // NewCertificateTemplate returns the template that must be used to generate a certificate,
 // used to perform the authentication against the DataStore.
 func NewCertificateTemplate(commonName string) *x509.Certificate {
-	// A random 128-bit serial number, as recommended by RFC 5280.
-	serialNumber, err := cryptorand.Int(cryptorand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
-	if err != nil {
-		panic(fmt.Errorf("cannot generate the certificate serial number: %w", err))
-	}
-
 	return &x509.Certificate{
 		PublicKeyAlgorithm: x509.RSA,
-		SerialNumber:       serialNumber,
+		SerialNumber:       big.NewInt(mathrand.Int63()),
 		Subject: pkix.Name{
 			CommonName:   commonName,
 			Organization: []string{"system:masters"},
 		},
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(10, 0, 0),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().AddDate(10, 0, 0),
+		SubjectKeyId: []byte{1, 2, 3, 4, 6},
 		ExtKeyUsage: []x509.ExtKeyUsage{
 			x509.ExtKeyUsageClientAuth,
+			x509.ExtKeyUsageServerAuth,
+			x509.ExtKeyUsageCodeSigning,
 		},
 		KeyUsage: x509.KeyUsageDigitalSignature,
 	}

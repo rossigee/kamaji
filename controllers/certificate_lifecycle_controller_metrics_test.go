@@ -13,16 +13,15 @@ import (
 	"testing"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/constants"
+	"github.com/clastix/kamaji/internal/metrics"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/constants"
-	"github.com/clastix/kamaji/internal/metrics"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 func TestCertificateRefreshMetrics(t *testing.T) {

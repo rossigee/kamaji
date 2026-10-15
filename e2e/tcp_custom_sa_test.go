@@ -6,13 +6,12 @@ package e2e
 import (
 	"context"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pointer "k8s.io/utils/ptr"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 var _ = Describe("Deploy a TenantControlPlane with resource with custom service account", func() {

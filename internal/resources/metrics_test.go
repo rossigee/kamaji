@@ -7,12 +7,11 @@ import (
 	"context"
 	"testing"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 func TestHandlerHistogramUsesSingleMetricWithHandlerLabel(t *testing.T) {

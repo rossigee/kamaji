@@ -8,6 +8,10 @@ import (
 	"fmt"
 
 	"github.com/blang/semver"
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/constants"
+	"github.com/clastix/kamaji/internal/resources"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/prometheus/client_golang/prometheus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,11 +22,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/constants"
-	"github.com/clastix/kamaji/internal/resources"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type Agent struct {
@@ -53,7 +52,7 @@ func (r *Agent) agentVersion(tcp *kamajiv1alpha1.TenantControlPlane) string {
 func (r *Agent) ShouldStatusBeUpdated(_ context.Context, tcp *kamajiv1alpha1.TenantControlPlane) bool {
 	return tcp.Spec.Addons.Konnectivity == nil && (tcp.Status.Addons.Konnectivity.Agent.Namespace != "" || tcp.Status.Addons.Konnectivity.Agent.Name != "") ||
 		tcp.Spec.Addons.Konnectivity != nil && (tcp.Status.Addons.Konnectivity.Agent.Namespace != r.resource.GetNamespace() || tcp.Status.Addons.Konnectivity.Agent.Name != r.resource.GetName()) ||
-		tcp.Spec.Addons.Konnectivity != nil && tcp.Spec.Addons.Konnectivity.KonnectivityAgentSpec.Mode != tcp.Status.Addons.Konnectivity.Agent.Mode
+		tcp.Spec.Addons.Konnectivity.KonnectivityAgentSpec.Mode != tcp.Status.Addons.Konnectivity.Agent.Mode
 }
 
 func (r *Agent) ShouldCleanup(tenantControlPlane *kamajiv1alpha1.TenantControlPlane) bool {

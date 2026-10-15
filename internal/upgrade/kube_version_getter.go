@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"runtime"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	versionutil "k8s.io/apimachinery/pkg/util/version"
 	apimachineryversion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/upgrade"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 type kamajiKubeVersionGetter struct {

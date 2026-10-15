@@ -12,6 +12,15 @@ import (
 	"strings"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/controllers/finalizers"
+	"github.com/clastix/kamaji/controllers/utils"
+	controlplanebuilder "github.com/clastix/kamaji/internal/builders/controlplane"
+	"github.com/clastix/kamaji/internal/datastore"
+	kamajierrors "github.com/clastix/kamaji/internal/errors"
+	"github.com/clastix/kamaji/internal/metrics"
+	"github.com/clastix/kamaji/internal/resources"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/juju/mutex/v2"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -19,6 +28,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	k8stypes "k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/utils/clock"
@@ -35,15 +45,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/controllers/finalizers"
-	"github.com/clastix/kamaji/controllers/utils"
-	controlplanebuilder "github.com/clastix/kamaji/internal/builders/controlplane"
-	"github.com/clastix/kamaji/internal/datastore"
-	kamajierrors "github.com/clastix/kamaji/internal/errors"
-	"github.com/clastix/kamaji/internal/metrics"
-	"github.com/clastix/kamaji/internal/resources"
 )
 
 // TenantControlPlaneReconciler reconciles a TenantControlPlane object.
@@ -60,7 +61,7 @@ type TenantControlPlaneReconciler struct {
 	KamajiMigrateCABundle   []byte
 	MaxConcurrentReconciles int
 	ReconcileTimeout        time.Duration
-	GatewayAPIEnabled       bool
+	DiscoveryClient         discovery.DiscoveryInterface
 	// CertificateChan is the channel used by the CertificateLifecycleController that is checking for
 	// certificates and kubeconfig user certs validity: a generic event for the given TCP will be triggered
 	// once the validity threshold for the given certificate is reached.
@@ -86,6 +87,8 @@ type TenantControlPlaneReconcilerConfig struct {
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;delete
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=grpcroutes,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=tlsroutes,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=gateways,verbs=get;list;watch
 
@@ -236,7 +239,7 @@ func (r *TenantControlPlaneReconciler) Reconcile(ctx context.Context, req ctrl.R
 		KamajiService:                 r.KamajiService,
 		KamajiMigrateImage:            r.KamajiMigrateImage,
 		KamajiMigrateCABundle:         r.KamajiMigrateCABundle,
-		GatewayAPIEnabled:             r.GatewayAPIEnabled,
+		DiscoveryClient:               r.DiscoveryClient,
 	}
 	registeredResources := GetResources(ctx, groupResourceBuilderConfiguration)
 
@@ -380,11 +383,11 @@ func (r *TenantControlPlaneReconciler) SetupWithManager(ctx context.Context, mgr
 			return ok && v == "migrate"
 		})))
 
-	// HTTPRoute and GRPCRoute are not owned: Kamaji only creates TLSRoutes, and some managed
-	// Gateway API offerings omit GRPCRoute. An informer for an unserved kind never syncs and the
-	// manager fails to start.
-	if r.GatewayAPIEnabled {
+	// Conditionally add Gateway API ownership if available
+	if utilities.AreGatewayResourcesAvailable(ctx, r.Client, r.DiscoveryClient) {
 		controllerBuilder = controllerBuilder.
+			Owns(&gatewayv1.HTTPRoute{}).
+			Owns(&gatewayv1.GRPCRoute{}).
 			Owns(&gatewayv1.TLSRoute{}).
 			Watches(&gatewayv1.Gateway{}, handler.EnqueueRequestsFromMapFunc(func(_ context.Context, object client.Object) []reconcile.Request {
 				return nil

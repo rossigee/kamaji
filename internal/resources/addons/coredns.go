@@ -9,6 +9,13 @@ import (
 	"fmt"
 	"net"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/constants"
+	"github.com/clastix/kamaji/internal/kubeadm"
+	"github.com/clastix/kamaji/internal/resources"
+	addons_utils "github.com/clastix/kamaji/internal/resources/addons/utils"
+	"github.com/clastix/kamaji/internal/resources/utils"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/prometheus/client_golang/prometheus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,14 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/constants"
-	"github.com/clastix/kamaji/internal/kubeadm"
-	"github.com/clastix/kamaji/internal/resources"
-	addons_utils "github.com/clastix/kamaji/internal/resources/addons/utils"
-	"github.com/clastix/kamaji/internal/resources/utils"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type CoreDNS struct {
@@ -230,7 +229,7 @@ func (c *CoreDNS) decodeManifests(ctx context.Context, tcp *kamajiv1alpha1.Tenan
 		config.Parameters.CoreDNSOptions.Repository = tcp.Spec.Addons.CoreDNS.ImageRepository
 	}
 
-	if len(tcp.Spec.Addons.CoreDNS.ImageTag) > 0 {
+	if len(tcp.Spec.Addons.CoreDNS.ImageRepository) > 0 {
 		config.Parameters.CoreDNSOptions.Tag = tcp.Spec.Addons.CoreDNS.ImageTag
 	}
 

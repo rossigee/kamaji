@@ -7,12 +7,11 @@ import (
 	"context"
 	"fmt"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	dserrors "github.com/clastix/kamaji/internal/datastore/errors"
 	"go.etcd.io/etcd/api/v3/authpb"
 	"go.etcd.io/etcd/api/v3/v3rpc/rpctypes"
 	etcdclient "go.etcd.io/etcd/client/v3"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	dserrors "github.com/clastix/kamaji/internal/datastore/errors"
 )
 
 func NewETCDConnection(config ConnectionConfig) (Connection, error) {

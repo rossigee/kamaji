@@ -6,6 +6,9 @@ package datastore_test
 import (
 	"context"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/resources"
+	"github.com/clastix/kamaji/internal/resources/datastore"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -13,10 +16,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/resources"
-	"github.com/clastix/kamaji/internal/resources/datastore"
 )
 
 var _ = Describe("DatastoreStorageConfig", func() {
@@ -74,27 +73,6 @@ var _ = Describe("DatastoreStorageConfig", func() {
 
 			Expect(secrets.Items[0].Data["DB_SCHEMA"]).To(Equal(expectedValue))
 			Expect(secrets.Items[0].Data["DB_USER"]).To(Equal(expectedValue))
-		})
-	})
-
-	When("TCP uses the default UID-based names on a MySQL DataStore", func() {
-		BeforeEach(func() {
-			tcp.UID = "f647f1f5-3ea2-42a0-9475-7fc1bace3217"
-			tcp.Spec.DataStoreUsername = tcp.GetDefaultDatastoreUsername()
-			tcp.Spec.DataStoreSchema = tcp.GetDefaultDatastoreSchema()
-			ds.Spec.Driver = kamajiv1alpha1.KineMySQLDriver
-		})
-
-		It("should strip the hyphens from the username to fit the 32 characters limit", func() {
-			op, err := resources.Handle(ctx, dsc, tcp)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(op).To(Equal(controllerutil.OperationResultCreated))
-
-			secrets := &corev1.SecretList{}
-			Expect(fakeClient.List(ctx, secrets)).To(Succeed())
-			Expect(secrets.Items).To(HaveLen(1))
-			Expect(secrets.Items[0].Data["DB_USER"]).To(Equal([]byte("f647f1f53ea242a094757fc1bace3217")))
-			Expect(secrets.Items[0].Data["DB_SCHEMA"]).To(Equal([]byte(tcp.UID)))
 		})
 	})
 

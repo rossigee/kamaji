@@ -9,6 +9,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/clastix/kamaji/api/v1alpha1"
+	sooterrors "github.com/clastix/kamaji/controllers/soot/controllers/errors"
+	"github.com/clastix/kamaji/controllers/utils"
+	ds "github.com/clastix/kamaji/internal/resources/datastore"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/go-logr/logr"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -24,12 +29,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	"github.com/clastix/kamaji/api/v1alpha1"
-	sooterrors "github.com/clastix/kamaji/controllers/soot/controllers/errors"
-	"github.com/clastix/kamaji/controllers/utils"
-	ds "github.com/clastix/kamaji/internal/resources/datastore"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type Migrate struct {

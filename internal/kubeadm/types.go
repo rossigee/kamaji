@@ -4,11 +4,10 @@
 package kubeadm
 
 import (
+	"github.com/clastix/kamaji/internal/utilities"
 	json "github.com/json-iterator/go"
 	clientcmdapiv1 "k8s.io/client-go/tools/clientcmd/api/v1"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
-
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type Configuration struct {

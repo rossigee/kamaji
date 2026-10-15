@@ -9,12 +9,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/clastix/kamaji/internal/webhook/handlers"
 	"gomodules.xyz/jsonpatch/v2"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
-	"github.com/clastix/kamaji/internal/webhook/handlers"
 )
 
 type handlersChainer struct {

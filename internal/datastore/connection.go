@@ -7,9 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewStorageConnection(ctx context.Context, client client.Client, ds kamajiv1alpha1.DataStore) (Connection, error) {

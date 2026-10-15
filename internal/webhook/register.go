@@ -4,13 +4,12 @@
 package webhook
 
 import (
+	webhookhandlers "github.com/clastix/kamaji/internal/webhook/handlers"
+	webhookroutes "github.com/clastix/kamaji/internal/webhook/routes"
 	"k8s.io/utils/ptr"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
-	webhookhandlers "github.com/clastix/kamaji/internal/webhook/handlers"
-	webhookroutes "github.com/clastix/kamaji/internal/webhook/routes"
 )
 
 func Register(mgr controllerruntime.Manager, routes map[webhookroutes.Route][]webhookhandlers.Handler) error {

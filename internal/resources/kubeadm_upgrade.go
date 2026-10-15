@@ -7,17 +7,16 @@ import (
 	"context"
 	"fmt"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/kubeadm/printers"
+	kamajiupgrade "github.com/clastix/kamaji/internal/upgrade"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/util/version"
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/upgrade"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/kubeadm/printers"
-	kamajiupgrade "github.com/clastix/kamaji/internal/upgrade"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type KubernetesUpgrade struct {

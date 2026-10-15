@@ -6,11 +6,10 @@ package metrics
 import (
 	"testing"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/prometheus/client_golang/prometheus"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 func testRecorder() *Recorder {

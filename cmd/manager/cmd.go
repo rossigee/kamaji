@@ -13,6 +13,17 @@ import (
 	"time"
 
 	telemetryclient "github.com/clastix/kamaji-telemetry/pkg/client"
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	cmdutils "github.com/clastix/kamaji/cmd/utils"
+	"github.com/clastix/kamaji/controllers"
+	"github.com/clastix/kamaji/controllers/soot"
+	"github.com/clastix/kamaji/internal"
+	"github.com/clastix/kamaji/internal/builders/controlplane"
+	"github.com/clastix/kamaji/internal/metrics"
+	"github.com/clastix/kamaji/internal/utilities"
+	"github.com/clastix/kamaji/internal/webhook"
+	"github.com/clastix/kamaji/internal/webhook/handlers"
+	"github.com/clastix/kamaji/internal/webhook/routes"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,19 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	ctrlwebhook "sigs.k8s.io/controller-runtime/pkg/webhook"
-	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	cmdutils "github.com/clastix/kamaji/cmd/utils"
-	"github.com/clastix/kamaji/controllers"
-	"github.com/clastix/kamaji/controllers/soot"
-	"github.com/clastix/kamaji/internal"
-	"github.com/clastix/kamaji/internal/builders/controlplane"
-	"github.com/clastix/kamaji/internal/metrics"
-	"github.com/clastix/kamaji/internal/utilities"
-	"github.com/clastix/kamaji/internal/webhook"
-	"github.com/clastix/kamaji/internal/webhook/handlers"
-	"github.com/clastix/kamaji/internal/webhook/routes"
 )
 
 //nolint:maintidx
@@ -61,7 +59,6 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 		migrateJobImage               string
 		maxConcurrentReconciles       int
 		disableTelemetry              bool
-		enableGatewayAPI              bool
 		certificateExpirationDeadline time.Duration
 
 		webhookCAPath string
@@ -150,24 +147,11 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 				return err
 			}
 
-			if enableGatewayAPI {
-				discoveryClient, discoveryErr := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
-				if discoveryErr != nil {
-					setupLog.Error(discoveryErr, "unable to create discovery client")
+			discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+			if err != nil {
+				setupLog.Error(err, "unable to create discovery client")
 
-					return discoveryErr
-				}
-
-				missing, discoveryErr := utilities.MissingGatewayAPIKinds(discoveryClient)
-				if discoveryErr != nil {
-					setupLog.Error(discoveryErr, "unable to discover Gateway API resources")
-
-					return discoveryErr
-				}
-
-				if len(missing) > 0 {
-					return fmt.Errorf("--enable-gateway-api is set but the cluster does not serve the %s kinds %v: install the Gateway API CRDs", gatewayv1.GroupVersion, missing)
-				}
+				return err
 			}
 
 			reconciler := &controllers.TenantControlPlaneReconciler{
@@ -189,7 +173,7 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 				KamajiMigrateImage:      migrateJobImage,
 				KamajiMigrateCABundle:   webhookCABundle,
 				MaxConcurrentReconciles: maxConcurrentReconciles,
-				GatewayAPIEnabled:       enableGatewayAPI,
+				DiscoveryClient:         discoveryClient,
 			}
 
 			if err = reconciler.SetupWithManager(ctx, mgr); err != nil {
@@ -200,7 +184,7 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 
 			k8sVersion, versionErr := cmdutils.KubernetesVersion(mgr.GetConfig())
 			if versionErr != nil {
-				setupLog.Error(versionErr, "unable to get kubernetes version")
+				setupLog.Error(err, "unable to get kubernetes version")
 
 				k8sVersion = "Unknown"
 			}
@@ -243,7 +227,7 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 			}
 
 			// Only requires to look for the core api group.
-			if enableGatewayAPI {
+			if utilities.AreGatewayResourcesAvailable(ctx, mgr.GetClient(), discoveryClient) {
 				if err = (&kamajiv1alpha1.GatewayListener{}).SetupWithManager(ctx, mgr); err != nil {
 					setupLog.Error(err, "unable to create indexer", "indexer", "GatewayListener")
 
@@ -280,7 +264,11 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 						},
 					},
 					handlers.TenantControlPlaneGatewayValidation{
-						GatewayAPIEnabled: enableGatewayAPI,
+						Client:          mgr.GetClient(),
+						DiscoveryClient: discoveryClient,
+					},
+					handlers.TenantControlPlanePreGeneratedCerts{
+						Client: mgr.GetClient(),
 					},
 				},
 				routes.TenantControlPlaneTelemetry{}: {
@@ -316,11 +304,6 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 			}
 			if err = mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 				setupLog.Error(err, "unable to set up ready check")
-
-				return err
-			}
-			if err = mgr.AddReadyzCheck("webhook", mgr.GetWebhookServer().StartedChecker()); err != nil {
-				setupLog.Error(err, "unable to set up webhook ready check")
 
 				return err
 			}
@@ -361,7 +344,6 @@ func NewCmd(scheme *runtime.Scheme) *cobra.Command {
 	cmd.Flags().StringVar(&webhookCAPath, "webhook-ca-path", "/tmp/k8s-webhook-server/serving-certs/ca.crt", "Path to the Manager webhook server CA, required for the TenantControlPlane migration jobs.")
 	cmd.Flags().DurationVar(&controllerReconcileTimeout, "controller-reconcile-timeout", 30*time.Second, "The reconciliation request timeout before the controller withdraw the external resource calls, such as dealing with the Datastore, or the Tenant Control Plane API endpoint.")
 	cmd.Flags().DurationVar(&cacheResyncPeriod, "cache-resync-period", 10*time.Hour, "The controller-runtime.Manager cache resync period.")
-	cmd.Flags().BoolVar(&enableGatewayAPI, "enable-gateway-api", false, "Enable the Gateway API support: the Gateway API CRDs must be installed before Kamaji starts.")
 	cmd.Flags().BoolVar(&disableTelemetry, "disable-telemetry", false, "Disable the analytics traces collection.")
 	cmd.Flags().DurationVar(&certificateExpirationDeadline, "certificate-expiration-deadline", 24*time.Hour, "Define the deadline upon certificate expiration to start the renewal process, cannot be less than a 24 hours.")
 

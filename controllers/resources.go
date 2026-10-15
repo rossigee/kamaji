@@ -8,12 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-logr/logr"
-	"github.com/google/uuid"
-	k8stypes "k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/clastix/kamaji/controllers/finalizers"
 	builder "github.com/clastix/kamaji/internal/builders/controlplane"
@@ -21,6 +15,13 @@ import (
 	"github.com/clastix/kamaji/internal/resources"
 	ds "github.com/clastix/kamaji/internal/resources/datastore"
 	"github.com/clastix/kamaji/internal/resources/konnectivity"
+	"github.com/clastix/kamaji/internal/utilities"
+	"github.com/go-logr/logr"
+	"github.com/google/uuid"
+	k8stypes "k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type GroupResourceBuilderConfiguration struct {
@@ -38,7 +39,7 @@ type GroupResourceBuilderConfiguration struct {
 	KamajiService                 string
 	KamajiMigrateImage            string
 	KamajiMigrateCABundle         []byte
-	GatewayAPIEnabled             bool
+	DiscoveryClient               discovery.DiscoveryInterface
 }
 
 type GroupDeletableResourceBuilderConfiguration struct {
@@ -70,7 +71,8 @@ func GetResources(ctx context.Context, config GroupResourceBuilderConfiguration)
 	resources = append(resources, getDataStoreMigratingCleanup(config.client, config.KamajiNamespace)...)
 	resources = append(resources, getKubernetesIngressResources(config.client)...)
 
-	if config.GatewayAPIEnabled {
+	// Conditionally add Gateway resources
+	if utilities.AreGatewayResourcesAvailable(ctx, config.client, config.DiscoveryClient) {
 		resources = append(resources, getKubernetesGatewayResources(config.client)...)
 		resources = append(resources, getKonnectivityGatewayResources(config.client)...)
 	}

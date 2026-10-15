@@ -8,6 +8,13 @@ import (
 	"context"
 	"fmt"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/constants"
+	"github.com/clastix/kamaji/internal/kubeadm"
+	"github.com/clastix/kamaji/internal/resources"
+	addon_utils "github.com/clastix/kamaji/internal/resources/addons/utils"
+	"github.com/clastix/kamaji/internal/resources/utils"
+	"github.com/clastix/kamaji/internal/utilities"
 	"github.com/prometheus/client_golang/prometheus"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,14 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/constants"
-	"github.com/clastix/kamaji/internal/kubeadm"
-	"github.com/clastix/kamaji/internal/resources"
-	addon_utils "github.com/clastix/kamaji/internal/resources/addons/utils"
-	"github.com/clastix/kamaji/internal/resources/utils"
-	"github.com/clastix/kamaji/internal/utilities"
 )
 
 type KubeProxy struct {

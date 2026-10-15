@@ -8,12 +8,11 @@ import (
 	"sync"
 	"time"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	kamajiversion "github.com/clastix/kamaji/internal"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrlmetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	kamajiversion "github.com/clastix/kamaji/internal"
 )
 
 const (

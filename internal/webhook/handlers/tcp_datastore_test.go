@@ -6,14 +6,13 @@ package handlers
 import (
 	"context"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 )
 
 var _ = Describe("TCP Datastore webhook", func() {

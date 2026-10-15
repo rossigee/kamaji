@@ -7,27 +7,32 @@ import (
 	"context"
 	"fmt"
 
+	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/clastix/kamaji/internal/utilities"
+	"github.com/clastix/kamaji/internal/webhook/utils"
 	"gomodules.xyz/jsonpatch/v2"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
-	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
-	"github.com/clastix/kamaji/internal/webhook/utils"
 )
 
 type TenantControlPlaneGatewayValidation struct {
-	GatewayAPIEnabled bool
+	Client          client.Client
+	DiscoveryClient discovery.DiscoveryInterface
 }
 
 func (t TenantControlPlaneGatewayValidation) OnCreate(object runtime.Object) AdmissionResponse {
-	return func(_ context.Context, _ admission.Request) ([]jsonpatch.JsonPatchOperation, error) {
+	return func(ctx context.Context, _ admission.Request) ([]jsonpatch.JsonPatchOperation, error) {
 		tcp, ok := object.(*kamajiv1alpha1.TenantControlPlane)
 		if !ok {
 			return nil, fmt.Errorf("cannot cast object to TenantControlPlane")
 		}
 
 		if tcp.Spec.ControlPlane.Gateway != nil {
-			if err := t.validateGatewayAPIEnabled(); err != nil {
+			// NOTE: Do we actually want to deny here if Gateway API is not available or a warning?
+			// Seems sensible to deny to avoid anything.
+			if err := t.validateGatewayAPIAvailability(ctx); err != nil {
 				return nil, err
 			}
 		}
@@ -37,14 +42,14 @@ func (t TenantControlPlaneGatewayValidation) OnCreate(object runtime.Object) Adm
 }
 
 func (t TenantControlPlaneGatewayValidation) OnUpdate(object runtime.Object, _ runtime.Object) AdmissionResponse {
-	return func(_ context.Context, _ admission.Request) ([]jsonpatch.JsonPatchOperation, error) {
+	return func(ctx context.Context, _ admission.Request) ([]jsonpatch.JsonPatchOperation, error) {
 		tcp, ok := object.(*kamajiv1alpha1.TenantControlPlane)
 		if !ok {
 			return nil, fmt.Errorf("cannot cast object to TenantControlPlane")
 		}
 
 		if tcp.Spec.ControlPlane.Gateway != nil {
-			if err := t.validateGatewayAPIEnabled(); err != nil {
+			if err := t.validateGatewayAPIAvailability(ctx); err != nil {
 				return nil, err
 			}
 		}
@@ -57,9 +62,14 @@ func (t TenantControlPlaneGatewayValidation) OnDelete(object runtime.Object) Adm
 	return utils.NilOp()
 }
 
-func (t TenantControlPlaneGatewayValidation) validateGatewayAPIEnabled() error {
-	if !t.GatewayAPIEnabled {
-		return fmt.Errorf("cannot use the gateway configuration while Gateway API support is disabled: start Kamaji with --enable-gateway-api")
+func (t TenantControlPlaneGatewayValidation) validateGatewayAPIAvailability(ctx context.Context) error {
+	if !utilities.AreGatewayResourcesAvailable(ctx, t.Client, t.DiscoveryClient) {
+		return fmt.Errorf("the Gateway API is not available in this cluster, cannot use gatewayRoute configuration")
+	}
+
+	// Additional check for TLSRoute specifically
+	if !utilities.IsTLSRouteAvailable(ctx, t.Client, t.DiscoveryClient) {
+		return fmt.Errorf("TLSRoute resource is not available in this cluster")
 	}
 
 	return nil

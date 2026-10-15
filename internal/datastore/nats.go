@@ -9,9 +9,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nats-io/nats.go"
-
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
+	"github.com/nats-io/nats.go"
 )
 
 // NATSConnection represents a connection to a NATS KV store.
