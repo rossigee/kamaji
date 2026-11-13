@@ -1,6 +1,6 @@
 module github.com/clastix/kamaji
 
-go 1.27.0
+go 1.27.4
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
